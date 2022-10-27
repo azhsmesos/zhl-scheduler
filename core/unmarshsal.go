@@ -22,10 +22,12 @@ type ClusterInfo struct {
 }
 
 const (
-	INSTANCE_TYPE = "instance"
-	HOST_TYPE     = "host"
-	LOCAL_DIR     = "dev.jsonl"
-	REMOTER_DIR   = "/home/admin/workspace/job/input/test.jsonl"
+	INSTANCE_TYPE    = "instance"
+	HOST_TYPE        = "host"
+	LOCAL_READ_DIR   = "dev.jsonl"
+	REMOTE_READ_DIR  = "/home/admin/workspace/job/input/test.jsonl"
+	LOCAL_WRITE_DIR  = "result.jsonl"
+	REMOTE_WRITE_DIR = "/home/admin/workspace/job/output/data/results.jsonl"
 )
 
 type Container struct {
@@ -53,7 +55,7 @@ type Container struct {
 }
 
 func initContainer() *Containers {
-	fd, err := os.OpenFile(LOCAL_DIR, os.O_RDONLY, 0755)
+	fd, err := os.OpenFile(LOCAL_READ_DIR, os.O_RDONLY, 0755)
 	defer fd.Close()
 	if err != nil {
 		panic(err)
@@ -98,5 +100,20 @@ func GetClusterInfo() *ClusterInfo {
 		Instances:             instances,
 		AppNameToInstances:    appNameToInstanceList,
 		AppNameNotToInstances: appNameNotToInstanceList,
+	}
+}
+
+func WriteClusterInfo(res *[]Res) {
+	fd, err := os.OpenFile(LOCAL_WRITE_DIR, os.O_CREATE|os.O_WRONLY, 0755)
+	defer fd.Close()
+	if err != nil {
+		panic(err)
+	}
+	encoder := json.NewEncoder(fd)
+	for _, r := range *res {
+		err = encoder.Encode(r)
+	}
+	if err != nil {
+		panic(err)
 	}
 }
